@@ -5,7 +5,7 @@ import { getUploadUrl } from '@/lib/s3'
 export async function POST(req: Request) {
   try {
     const user = await currentUser()
-    const { fileName, fileType } = await req.json()
+    const { fileName } = await req.json()
 
     if (!user) {
       return new NextResponse('Unauthorized', { status: 401 })
