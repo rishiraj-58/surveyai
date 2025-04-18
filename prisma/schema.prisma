@@ -1,0 +1,96 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id
+  email     String   @unique
+  name      String?
+  surveys   Survey[]
+  responses Response[]
+  transactions Transaction[]
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
+model Survey {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  topic     String
+  questions String[]
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  responses Response[]
+  summary   Summary?
+
+  @@map("surveys")
+  @@index([userId])
+}
+
+model Response {
+  id        String   @id @default(uuid())
+  surveyId  String   @map("survey_id")
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id])
+  answers   String[]
+  createdAt DateTime @default(now()) @map("created_at")
+  survey    Survey   @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+
+  @@map("responses")
+  @@index([surveyId])
+  @@index([userId])
+}
+
+model Summary {
+  id               String   @id @default(uuid())
+  surveyId         String   @unique @map("survey_id")
+  sentimentAnalysis Json    @map("sentiment_analysis")
+  keyInsights      String[] @map("key_insights")
+  recommendedActions String[] @map("recommended_actions")
+  createdAt        DateTime @default(now()) @map("created_at")
+  survey           Survey   @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+
+  @@map("summaries")
+  @@index([surveyId])
+}
+
+model Transaction {
+  id              String   @id @default(uuid())
+  userId          String   @map("user_id")
+  user            User     @relation(fields: [userId], references: [id])
+  amount          Int
+  type            TransactionType
+  status          TransactionStatus
+  stripeSessionId String?  @map("stripe_session_id")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@map("transactions")
+  @@index([userId])
+  @@index([stripeSessionId])
+}
+
+enum TransactionType {
+  credit
+  debit
+}
+
+enum TransactionStatus {
+  pending
+  completed
+  failed
+}

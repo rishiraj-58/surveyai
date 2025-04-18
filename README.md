@@ -1,22 +1,93 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Survey AI
 
-## Getting Started
+An AI-powered survey generation and analysis application built with Next.js 14.
 
-First, run the development server:
+## Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- AI-generated survey questions
+- Response analysis with sentiment insights
+- Secure authentication with Clerk
+- Payment processing with Stripe
+- File management with AWS S3
+- Real-time database with Supabase
+
+## Prerequisites
+
+- Node.js 18+
+- npm or yarn
+- Supabase account
+- Clerk account
+- Stripe account
+- AWS account
+- OpenAI API key
+
+## Environment Variables
+
+Create a `.env` file in the root directory with the following variables:
+
+```env
+# Database
+DATABASE_URL=your_supabase_database_url
+
+# Clerk
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
+CLERK_SECRET_KEY=your_clerk_secret_key
+CLERK_WEBHOOK_SECRET=your_clerk_webhook_secret
+
+# Stripe
+STRIPE_SECRET_KEY=your_stripe_secret_key
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key
+STRIPE_WEBHOOK_SECRET=your_stripe_webhook_secret
+NEXT_PUBLIC_APP_URL=your_app_url
+
+# AWS
+AWS_REGION=your_aws_region
+AWS_ACCESS_KEY_ID=your_aws_access_key
+AWS_SECRET_ACCESS_KEY=your_aws_secret_key
+AWS_BUCKET_NAME=your_bucket_name
+
+# OpenAI
+OPENAI_API_KEY=your_openai_api_key
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Deployment
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. Push your code to GitHub:
+```bash
+git init
+git add .
+git commit -m "Initial commit"
+git remote add origin your-github-repo-url
+git push -u origin main
+```
+
+2. Deploy to Vercel:
+- Go to [Vercel](https://vercel.com)
+- Import your GitHub repository
+- Add all environment variables
+- Deploy
+
+## Development
+
+1. Install dependencies:
+```bash
+npm install
+```
+
+2. Run the development server:
+```bash
+npm run dev
+```
+
+3. Build for production:
+```bash
+npm run build
+```
+
+4. Start production server:
+```bash
+npm start
+```
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
