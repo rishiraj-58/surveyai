@@ -117,6 +117,14 @@ exports.Prisma.TransactionIsolationLevel = makeStrictEnum({
   Serializable: 'Serializable'
 });
 
+exports.Prisma.UserScalarFieldEnum = {
+  id: 'id',
+  email: 'email',
+  name: 'name',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SurveyScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
@@ -167,15 +175,15 @@ exports.Prisma.QueryMode = {
   insensitive: 'insensitive'
 };
 
+exports.Prisma.NullsOrder = {
+  first: 'first',
+  last: 'last'
+};
+
 exports.Prisma.JsonNullValueFilter = {
   DbNull: Prisma.DbNull,
   JsonNull: Prisma.JsonNull,
   AnyNull: Prisma.AnyNull
-};
-
-exports.Prisma.NullsOrder = {
-  first: 'first',
-  last: 'last'
 };
 exports.TransactionType = exports.$Enums.TransactionType = {
   credit: 'credit',
@@ -189,6 +197,7 @@ exports.TransactionStatus = exports.$Enums.TransactionStatus = {
 };
 
 exports.Prisma.ModelName = {
+  User: 'User',
   Survey: 'Survey',
   Response: 'Response',
   Summary: 'Summary',

@@ -12,6 +12,22 @@ export async function POST(req: Request) {
       return new NextResponse('Unauthorized', { status: 401 })
     }
 
+    // Ensure user exists in database
+    const dbUser = await prisma.user.findUnique({
+      where: { id: user.id }
+    });
+
+    if (!dbUser) {
+      // Create user if they don't exist in our database
+      await prisma.user.create({
+        data: {
+          id: user.id,
+          email: user.emailAddresses[0].emailAddress,
+          name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.username || 'User',
+        }
+      });
+    }
+
     // Generate questions using OpenAI
     const questions = await generateSurveyQuestions(topic)
 
