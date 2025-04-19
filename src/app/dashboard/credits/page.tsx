@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import { useUser } from '@clerk/nextjs';
 
 const CREDIT_PACKAGES = [
   { id: 'basic', amount: 5, price: 5, savings: '0%' },
@@ -13,12 +14,33 @@ const CREDIT_PACKAGES = [
 export default function CreditsPage() {
   const [selectedPackage, setSelectedPackage] = useState('popular');
   const [isLoading, setIsLoading] = useState(false);
+  const [credits, setCredits] = useState<number | null>(null);
   const [statusMessage, setStatusMessage] = useState<{ type: 'success' | 'error' | null; text: string | null }>({
     type: null,
     text: null,
   });
   
   const searchParams = useSearchParams();
+  const { user } = useUser();
+  
+  // Fetch user's credits
+  useEffect(() => {
+    async function fetchCredits() {
+      if (user?.id) {
+        try {
+          const response = await fetch(`/api/user/credits?userId=${user.id}`);
+          if (response.ok) {
+            const data = await response.json();
+            setCredits(data.credits);
+          }
+        } catch (error) {
+          console.error('Error fetching credits:', error);
+        }
+      }
+    }
+    
+    fetchCredits();
+  }, [user?.id]);
   
   useEffect(() => {
     // Check for success or canceled params in URL
@@ -30,13 +52,31 @@ export default function CreditsPage() {
         type: 'success',
         text: 'Payment successful! Your credits have been added to your account.',
       });
+      
+      // Refresh credits after successful payment
+      if (user?.id) {
+        fetchCredits(user.id);
+      }
     } else if (canceled === 'true') {
       setStatusMessage({
         type: 'error',
         text: 'Payment was canceled. No credits were added to your account.',
       });
     }
-  }, [searchParams]);
+  }, [searchParams, user?.id]);
+  
+  // Function to fetch credits
+  async function fetchCredits(userId: string) {
+    try {
+      const response = await fetch(`/api/user/credits?userId=${userId}`);
+      if (response.ok) {
+        const data = await response.json();
+        setCredits(data.credits);
+      }
+    } catch (error) {
+      console.error('Error fetching credits:', error);
+    }
+  }
 
   const handlePurchase = async () => {
     setIsLoading(true);
@@ -93,7 +133,9 @@ export default function CreditsPage() {
               <h2 className="text-lg font-medium text-gray-900">Your Credit Balance</h2>
               <p className="text-sm text-gray-500 mt-1">1 credit = 1 survey generation</p>
             </div>
-            <span className="text-3xl font-bold text-indigo-600">5 Credits</span>
+            <span className="text-3xl font-bold text-indigo-600">
+              {credits !== null ? `${credits} Credits` : 'Loading...'}
+            </span>
           </div>
         </div>
 

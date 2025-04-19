@@ -4,6 +4,13 @@ import { stripe } from '@/lib/stripe'
 import { prisma } from '@/lib/prisma'
 import type { Stripe } from 'stripe'
 
+// Map price amounts to credit amounts with proper typing
+const CREDIT_PACKAGES: Record<string, number> = {
+  '5': 5,    // $5 = 5 credits
+  '18': 20,  // $18 = 20 credits
+  '40': 50   // $40 = 50 credits
+}
+
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!
 
 export async function POST(req: Request) {
@@ -30,16 +37,40 @@ export async function POST(req: Request) {
         return new NextResponse('User ID is required', { status: 400 })
       }
 
-      // Create transaction record
-      await prisma.transaction.create({
-        data: {
-          userId,
-          amount,
-          type: 'credit',
-          status: 'completed',
-          stripeSessionId: session.id,
-        },
-      })
+      // Determine number of credits to add based on the amount
+      const amountKey = amount.toString();
+      const creditsToAdd = CREDIT_PACKAGES[amountKey] || Math.floor(amount);
+      
+      try {
+        // Start a transaction to ensure both operations succeed or fail together
+        await prisma.$transaction(async (tx) => {
+          // Create transaction record
+          await tx.transaction.create({
+            data: {
+              userId,
+              amount,
+              type: 'credit',
+              status: 'completed',
+              stripeSessionId: session.id,
+            },
+          });
+          
+          // Update user's credits
+          await tx.user.update({
+            where: { id: userId },
+            data: {
+              credits: {
+                increment: creditsToAdd
+              }
+            }
+          });
+        });
+        
+        console.log(`Added ${creditsToAdd} credits to user ${userId}`);
+      } catch (error) {
+        console.error('Error processing payment:', error);
+        return new NextResponse('Error processing payment', { status: 500 });
+      }
       break;
     
     // Add other event types as needed
