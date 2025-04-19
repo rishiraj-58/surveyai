@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 
 const CREDIT_PACKAGES = [
   { id: 'basic', amount: 5, price: 5, savings: '0%' },
@@ -12,6 +13,30 @@ const CREDIT_PACKAGES = [
 export default function CreditsPage() {
   const [selectedPackage, setSelectedPackage] = useState('popular');
   const [isLoading, setIsLoading] = useState(false);
+  const [statusMessage, setStatusMessage] = useState<{ type: 'success' | 'error' | null; text: string | null }>({
+    type: null,
+    text: null,
+  });
+  
+  const searchParams = useSearchParams();
+  
+  useEffect(() => {
+    // Check for success or canceled params in URL
+    const success = searchParams.get('success');
+    const canceled = searchParams.get('canceled');
+    
+    if (success === 'true') {
+      setStatusMessage({
+        type: 'success',
+        text: 'Payment successful! Your credits have been added to your account.',
+      });
+    } else if (canceled === 'true') {
+      setStatusMessage({
+        type: 'error',
+        text: 'Payment was canceled. No credits were added to your account.',
+      });
+    }
+  }, [searchParams]);
 
   const handlePurchase = async () => {
     setIsLoading(true);
@@ -34,6 +59,10 @@ export default function CreditsPage() {
       window.location.href = url;
     } catch (error) {
       console.error('Error creating checkout session:', error);
+      setStatusMessage({
+        type: 'error',
+        text: 'Something went wrong while creating your checkout session.',
+      });
       setIsLoading(false);
     }
   };
@@ -47,6 +76,16 @@ export default function CreditsPage() {
             Back to Dashboard
           </Link>
         </div>
+        
+        {statusMessage.text && (
+          <div 
+            className={`mb-6 p-4 rounded-md ${
+              statusMessage.type === 'success' ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'
+            }`}
+          >
+            {statusMessage.text}
+          </div>
+        )}
 
         <div className="bg-white shadow-sm rounded-lg p-6 mb-8">
           <div className="flex items-center justify-between">
