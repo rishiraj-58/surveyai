@@ -7,7 +7,8 @@
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "db:push": "node scripts/update-db.js"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.787.0",
