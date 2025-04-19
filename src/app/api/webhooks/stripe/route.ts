@@ -20,24 +20,31 @@ export async function POST(req: Request) {
 
   const session = event.data.object as Stripe.Checkout.Session
 
-  if (event.type === 'checkout.session.completed') {
-    const userId = session.metadata?.userId
-    const amount = session.amount_total ? session.amount_total / 100 : 0
+  // Handle different event types
+  switch (event.type) {
+    case 'checkout.session.completed':
+      const userId = session.metadata?.userId
+      const amount = session.amount_total ? session.amount_total / 100 : 0
 
-    if (!userId) {
-      return new NextResponse('User ID is required', { status: 400 })
-    }
+      if (!userId) {
+        return new NextResponse('User ID is required', { status: 400 })
+      }
 
-    // Create transaction record
-    await prisma.transaction.create({
-      data: {
-        userId,
-        amount,
-        type: 'credit',
-        status: 'completed',
-        stripeSessionId: session.id,
-      },
-    })
+      // Create transaction record
+      await prisma.transaction.create({
+        data: {
+          userId,
+          amount,
+          type: 'credit',
+          status: 'completed',
+          stripeSessionId: session.id,
+        },
+      })
+      break;
+    
+    // Add other event types as needed
+    default:
+      console.log(`Unhandled event type: ${event.type}`)
   }
 
   return new NextResponse(null, { status: 200 })
