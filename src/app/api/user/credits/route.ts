@@ -1,22 +1,24 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { auth } from '@clerk/nextjs';
+import { currentUser } from '@clerk/nextjs/server';
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId');
+    const requestedUserId = searchParams.get('userId');
     
     // Verify authentication
-    const { userId: authenticatedUserId } = auth();
+    const user = await currentUser();
     
-    if (!authenticatedUserId) {
+    if (!user) {
       return new NextResponse('Unauthorized', { status: 401 });
     }
     
+    const authenticatedUserId = user.id;
+    
     // Either fetch the authenticated user's credits or a specific user's credits
     // (latter only allowed if authenticated user is an admin, which we're not implementing here)
-    const targetUserId = userId || authenticatedUserId;
+    const targetUserId = requestedUserId || authenticatedUserId;
     
     // Only allow users to fetch their own credits
     if (targetUserId !== authenticatedUserId) {
@@ -24,16 +26,16 @@ export async function GET(request: Request) {
     }
     
     // Get user with credits
-    const user = await prisma.user.findUnique({
+    const dbUser = await prisma.user.findUnique({
       where: { id: targetUserId },
       select: { credits: true }
     });
     
-    if (!user) {
+    if (!dbUser) {
       return new NextResponse('User not found', { status: 404 });
     }
     
-    return NextResponse.json({ credits: user.credits });
+    return NextResponse.json({ credits: dbUser.credits });
   } catch (error) {
     console.error('[USER_CREDITS_ERROR]', error);
     return new NextResponse('Internal Error', { status: 500 });

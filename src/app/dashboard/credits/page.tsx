@@ -21,26 +21,32 @@ export default function CreditsPage() {
   });
   
   const searchParams = useSearchParams();
-  const { user } = useUser();
+  const { user, isLoaded } = useUser();
   
   // Fetch user's credits
   useEffect(() => {
-    async function fetchCredits() {
-      if (user?.id) {
+    async function fetchUserCredits() {
+      if (isLoaded && user?.id) {
         try {
           const response = await fetch(`/api/user/credits?userId=${user.id}`);
           if (response.ok) {
             const data = await response.json();
             setCredits(data.credits);
+          } else {
+            console.error('Failed to fetch credits:', await response.text());
+            // Fallback to default credits on error
+            setCredits(5);
           }
         } catch (error) {
           console.error('Error fetching credits:', error);
+          // Fallback to default credits on error
+          setCredits(5);
         }
       }
     }
     
-    fetchCredits();
-  }, [user?.id]);
+    fetchUserCredits();
+  }, [user?.id, isLoaded]);
   
   useEffect(() => {
     // Check for success or canceled params in URL
@@ -54,8 +60,8 @@ export default function CreditsPage() {
       });
       
       // Refresh credits after successful payment
-      if (user?.id) {
-        fetchCredits(user.id);
+      if (isLoaded && user?.id) {
+        fetchCredits();
       }
     } else if (canceled === 'true') {
       setStatusMessage({
@@ -63,15 +69,19 @@ export default function CreditsPage() {
         text: 'Payment was canceled. No credits were added to your account.',
       });
     }
-  }, [searchParams, user?.id]);
+  }, [searchParams, user?.id, isLoaded]);
   
   // Function to fetch credits
-  async function fetchCredits(userId: string) {
+  async function fetchCredits() {
+    if (!user?.id) return;
+    
     try {
-      const response = await fetch(`/api/user/credits?userId=${userId}`);
+      const response = await fetch(`/api/user/credits?userId=${user.id}`);
       if (response.ok) {
         const data = await response.json();
         setCredits(data.credits);
+      } else {
+        console.error('Failed to fetch credits:', await response.text());
       }
     } catch (error) {
       console.error('Error fetching credits:', error);
